@@ -6,17 +6,7 @@ const { getRecipe } = require("./Services");
 // }
 const MongoClient = require("mongodb").MongoClient;
 
-const app = express();
-app.use(cors());
-app.use(express.json()); //data from json
-app.use(express.urlencoded({ extended: true })); //data from form
-app.use(express.static("public"));
 
-const path = require("path");
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is listening on ${PORT}.`);
-});
 
 const connectionString =
   "mongodb+srv://sun624:19900624@cluster0.yrtr8.mongodb.net/recipes?retryWrites=true&w=majority";
@@ -26,6 +16,18 @@ MongoClient.connect(
     useUnifiedTopology: true,
   },
   (err, client) => {
+    const app = express();
+    app.use(cors());
+    app.use(express.json()); //data from json
+    app.use(express.urlencoded({ extended: true })); //data from form
+    app.use(express.static("public"));
+
+    const path = require("path");
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server is listening on ${PORT}.`);
+    });
+
     console.log("connect to Database");
 
     const recipeColletion = client.db("recipes").collection("recipes-favs");
