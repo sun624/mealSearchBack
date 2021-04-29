@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { getUID, getPhoto } = require("./Services");
 // if (!process.env.PORT) {
 //   require("./Secrets");
 // }
@@ -17,7 +18,8 @@ app.listen(PORT, () => {
   console.log(`Server is listening on ${PORT}.`);
 });
 
-const connectionString="mongodb+srv://sun624:19900624@cluster0.yrtr8.mongodb.net/recipes?retryWrites=true&w=majority";
+const connectionString =
+  "mongodb+srv://sun624:19900624@cluster0.yrtr8.mongodb.net/recipes?retryWrites=true&w=majority";
 MongoClient.connect(
   connectionString,
   {
@@ -28,25 +30,13 @@ MongoClient.connect(
 
     const recipeColletion = client.db("recipes").collection("recipes-favs");
 
-    server.use(cors());
-
-    //data from json
-    server.use(express.json());
-    //data from form
-    server.use(express.urlencoded({ extended: true }));
-
-    const PORT = process.env.PORT || 3000;
-
-    server.listen(PORT, () => {
-      console.log(`Server is listening on ${PORT}.`);
-    });
-
+    
     //GET / best practice is to use query parameters
-    server.get("/", (req, res) => {
+    app.get("/", (req, res) => {
       console.log("Inside Get");
-      const{email}=req.body;
+      const { email } = req.body;
       recipeColletion
-        .find({email:email})
+        .find({ email: email })
         .toArray()
         .then((result) => {
           res.send(result);
@@ -54,48 +44,45 @@ MongoClient.connect(
     });
 
     //POST /
-    server.post("/", async (req, res) => {
+    app.post("/", async (req, res) => {
       console.log(req.body);
       const { email, uid, recipe } = req.body;
 
       if (!email || !recipe) {
-        return res
-          .status(400)
-          .json({ error: "email and recipe are required" });
+        return res.status(400).json({ error: "email and recipe are required" });
       }
 
-    
       const newRecipe = {
         email,
-        uid,
-       recipe
+        uid:getUID(),
+        recipe,
       };
       recipeColletion.insertOne(newRecipe);
 
-      res.redirect("/");
+      res.send("sccuess");
     });
 
     //PUT / :UPDATE operation
-    server.put("/", async (req, res) => {
+    app.put("/", async (req, res) => {
       console.log("Inside PUT");
-      const { email,uid,recipe } = req.body;
+      const { email, uid, recipe } = req.body;
 
       if (email || uid || recipe) {
         recipeColletion
           .findOneAndUpdate(
-            { uid: uid,email:email },
+            { uid: uid, email: email },
             {
               $set: {
                 email: email,
-                uid:uid,
+                uid: uid,
                 recipe: recipe,
-                      },
+              },
             },
             { returnOriginal: false }
           )
           .then(() =>
             recipeColletion
-              .find({email:email})
+              .find({ email: email })
               .toArray()
               .then((result) => {
                 res.send(result);
@@ -105,13 +92,13 @@ MongoClient.connect(
     });
 
     //DELETE
-    server.delete("/", (req, res) => {
+    app.delete("/", (req, res) => {
       console.log("INside DElete");
-      const { email,uid } = req.body;
+      const { email, uid } = req.body;
 
-      destColletion.deleteOne({ uid: uid }).then(() =>
+      recipeColletion.deleteOne({ email:email,uid: uid }).then(() =>
         recipeColletion
-          .find({email:email})
+          .find({ email: email })
           .toArray()
           .then((result) => res.send(result))
       );
