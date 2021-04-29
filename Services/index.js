@@ -6,7 +6,8 @@ const axios = require("axios");
 
 
 async function getRecipefromMealDB(id) {
-  const URL = `www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`;
+  intId = parseInt(id);
+  const URL = `www.themealdb.com/api/json/v1/1/lookup.php?i=${intId}`;
   
   const fallBackUrl = `https://api.unsplash.com/search/photos?client_id=${process.env.UNSPLASH_API_KEY}&page=1&query=${name}`;
 
