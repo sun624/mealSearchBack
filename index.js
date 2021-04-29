@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { getUID, getPhoto } = require("./Services");
+const { getRecipe } = require("./Services");
 // if (!process.env.PORT) {
 //   require("./Secrets");
 // }
@@ -31,7 +31,7 @@ MongoClient.connect(
     const recipeColletion = client.db("recipes").collection("recipes-favs");
 
     
-    //GET / best practice is to use query parameters
+    //GET / 
     app.get("/", (req, res) => {
       console.log("Inside Get");
       const { email } = req.body;
@@ -46,20 +46,20 @@ MongoClient.connect(
     //POST /
     app.post("/", async (req, res) => {
       console.log(req.body);
-      const { email, uid, recipe } = req.body;
+      const { email, mealId } = req.body;
 
-      if (!email || !recipe) {
-        return res.status(400).json({ error: "email and recipe are required" });
-      }
+           // if (!email || !recipe) {
+      //   return res.status(400).json({ error: "email and recipe are required" });
+      // }
 
       const newRecipe = {
         email,
-        uid:getUID(),
-        recipe,
+        mealId:mealId,
+        recipe:await getRecipe(mealId),
       };
       recipeColletion.insertOne(newRecipe);
 
-      res.send("sccuess");
+      res.send("Successfully Added to your favourates");
     });
 
     //PUT / :UPDATE operation
