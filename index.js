@@ -5,8 +5,7 @@ const { getRecipe } = require("./Services");
 //   require("./Secrets");
 // }
 const MongoClient = require("mongodb").MongoClient;
-
-
+const app = express();
 
 const connectionString =
   "mongodb+srv://sun624:19900624@cluster0.yrtr8.mongodb.net/recipes?retryWrites=true&w=majority";
@@ -16,13 +15,10 @@ MongoClient.connect(
     useUnifiedTopology: true,
   },
   (err, client) => {
-    const app = express();
     app.use(cors());
     app.use(express.json()); //data from json
     app.use(express.urlencoded({ extended: true })); //data from form
-    app.use(express.static("public"));
 
-    const path = require("path");
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is listening on ${PORT}.`);
@@ -32,8 +28,7 @@ MongoClient.connect(
 
     const recipeColletion = client.db("recipes").collection("recipes-favs");
 
-    
-    //GET / 
+    //GET /
     app.get("/", (req, res) => {
       console.log("Inside Get");
       const { email } = req.body;
@@ -50,14 +45,14 @@ MongoClient.connect(
       console.log(req.body);
       const { email, mealId } = req.body;
 
-           // if (!email || !recipe) {
+      // if (!email || !recipe) {
       //   return res.status(400).json({ error: "email and recipe are required" });
       // }
 
       const newRecipe = {
         email,
-        mealId:mealId,
-        recipe:await getRecipe(mealId),
+        mealId: mealId,
+        recipe: await getRecipe(mealId),
       };
       recipeColletion.insertOne(newRecipe);
 
@@ -98,7 +93,7 @@ MongoClient.connect(
       console.log("INside DElete");
       const { email, uid } = req.body;
 
-      recipeColletion.deleteOne({ email:email,uid: uid }).then(() =>
+      recipeColletion.deleteOne({ email: email, uid: uid }).then(() =>
         recipeColletion
           .find({ email: email })
           .toArray()
