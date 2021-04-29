@@ -26,7 +26,7 @@ MongoClient.connect(
   (err, client) => {
     console.log("connect to Database");
 
-    const destColletion = client.db("test").collection("Destination");
+    const recipeColletion = client.db("recipes").collection("recipes-favs");
 
     server.use(cors());
 
@@ -44,69 +44,58 @@ MongoClient.connect(
     //GET / best practice is to use query parameters
     server.get("/", (req, res) => {
       console.log("Inside Get");
-      destColletion
-        .find()
+      const{email}=req.body;
+      recipeColletion
+        .find({email:email})
         .toArray()
         .then((result) => {
           res.send(result);
         });
     });
 
-    // server.get("/:location",(req,res)=>{
-    //   const location = req.params;
-    //   if(!location) return res.status(400).json({error:"need location"});
-
-    //   const locations = db.filter(place => place.location === location);
-    //   res.send(locations);
-    // })
-
     //POST /
     server.post("/", async (req, res) => {
       console.log(req.body);
-      const { name, location, description } = req.body;
+      const { email, uid, recipe } = req.body;
 
-      if (!name || !location) {
+      if (!email || !recipe) {
         return res
           .status(400)
-          .json({ error: "name and location are required" });
+          .json({ error: "email and recipe are required" });
       }
 
-      const uid = getUID();
-      const photo = await getPhoto(name);
-      const newLocation = {
+    
+      const newRecipe = {
+        email,
         uid,
-        name,
-        location,
-        photo,
-        description: description || "",
+       recipe
       };
-      destColletion.insertOne(newLocation);
+      recipeColletion.insertOne(newRecipe);
 
       res.redirect("/");
     });
 
-    //PUT /?uid :UPDATE operation
+    //PUT / :UPDATE operation
     server.put("/", async (req, res) => {
       console.log("Inside PUT");
-      const { uid, name, location, description } = req.body;
+      const { email,uid,recipe } = req.body;
 
-      if (name || location || description) {
-        destColletion
+      if (email || uid || recipe) {
+        recipeColletion
           .findOneAndUpdate(
-            { uid: uid },
+            { uid: uid,email:email },
             {
               $set: {
-                name: name,
-                location: location,
-                photo: await getPhoto(name),
-                description: description,
-              },
+                email: email,
+                uid:uid,
+                recipe: recipe,
+                      },
             },
             { returnOriginal: false }
           )
           .then(() =>
-            destColletion
-              .find()
+            recipeColletion
+              .find({email:email})
               .toArray()
               .then((result) => {
                 res.send(result);
@@ -118,11 +107,11 @@ MongoClient.connect(
     //DELETE
     server.delete("/", (req, res) => {
       console.log("INside DElete");
-      const { uid } = req.body;
+      const { email,uid } = req.body;
 
       destColletion.deleteOne({ uid: uid }).then(() =>
-        destColletion
-          .find()
+        recipeColletion
+          .find({email:email})
           .toArray()
           .then((result) => res.send(result))
       );
